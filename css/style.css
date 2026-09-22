@@ -13,7 +13,7 @@ body {
   margin: 0;
   font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
   color: var(--ink);
-  background: var(--felt);
+  background: #0b2418;
   -webkit-text-size-adjust: 100%;
   overscroll-behavior: none;
 }
@@ -23,22 +23,36 @@ button, select { font: inherit; color: inherit; }
 /* --------------------------------------------------------------- tokens */
 
 :root {
-  --felt: radial-gradient(ellipse at 50% 0%, #1c4c33 0%, #123425 55%, #0c2419 100%) fixed;
-  --panel: rgba(9, 28, 20, 0.72);
-  --panel-solid: #123023;
-  --edge: rgba(240, 222, 178, 0.18);
-  --edge-strong: rgba(240, 222, 178, 0.4);
-  --ink: #f2e7cd;
-  --ink-dim: #a9bfae;
+  --panel: rgba(7, 26, 18, 0.66);
+  --panel-solid: #10291e;
+  --edge: rgba(233, 198, 103, 0.16);
+  --edge-strong: rgba(233, 198, 103, 0.38);
+  --ink: #f4ead2;
+  --ink-dim: #9fb8a6;
   --gold: #e9c667;
-  --gold-deep: #b8912f;
+  --gold-deep: #a8801f;
   --red: #d8453a;
-  --green: #4fb173;
-  --card-face: #fdf4e3;
+  --green: #55bb7c;
+  --card-face: #f7edd6;
   --card-w: 60px;
   --radius: 14px;
-  --shadow-card: 0 2px 5px rgba(0, 0, 0, 0.42);
-  --shadow-lift: 0 10px 22px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 4px 10px rgba(0, 0, 0, 0.38);
+  --shadow-lift: 0 14px 30px rgba(0, 0, 0, 0.55), 0 3px 8px rgba(0, 0, 0, 0.45);
+}
+
+/* Felt: a fine two-way weave over a lit green ground, with a vignette so the
+   table reads as a surface under a lamp rather than as a flat fill. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -10%, rgba(94, 178, 124, 0.3), transparent 62%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, transparent 45%, rgba(0, 0, 0, 0.55) 100%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.022) 0 2px, transparent 2px 4px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 4px),
+    linear-gradient(180deg, #1a4a32 0%, #123a28 45%, #0b2418 100%);
 }
 
 /* ------------------------------------------------------------- skeleton */
@@ -60,32 +74,36 @@ button, select { font: inherit; color: inherit; }
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  padding: 6px 10px;
-  background: var(--panel);
+  padding: 7px 12px;
+  background: linear-gradient(180deg, rgba(20, 52, 38, 0.92), rgba(7, 26, 18, 0.88));
   border: 1px solid var(--edge);
   border-radius: var(--radius);
+  box-shadow: inset 0 1px 0 rgba(233, 198, 103, 0.12), 0 4px 14px rgba(0, 0, 0, 0.3);
 }
 
 .brand {
   margin: 0;
-  font-size: 1.05rem;
-  letter-spacing: 0.04em;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
+  color: var(--gold);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
 }
 
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
-  background: #b8302a;
+  background: linear-gradient(160deg, #c8382e, #8f1f18);
   color: #f2d9a8;
   font-family: serif;
-  font-size: 1rem;
-  box-shadow: inset 0 0 0 1.5px #f2d9a8;
+  font-size: 1.05rem;
+  box-shadow: inset 0 0 0 1.5px #f2d9a8, 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
 .topbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -137,16 +155,20 @@ select {
 
 .seat {
   flex: 0 0 auto;
-  background: var(--panel);
+  background: linear-gradient(180deg, rgba(18, 48, 35, 0.72), rgba(6, 24, 16, 0.6));
   border: 1px solid var(--edge);
   border-radius: var(--radius);
   padding: 6px 10px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  box-shadow: inset 0 1px 0 rgba(233, 198, 103, 0.08);
 }
 
-.seat-me { border-color: rgba(233, 198, 103, 0.35); }
+.seat-me {
+  border-color: rgba(233, 198, 103, 0.34);
+  box-shadow: inset 0 1px 0 rgba(233, 198, 103, 0.16), 0 0 0 1px rgba(233, 198, 103, 0.06);
+}
 
 .seat-head { display: flex; align-items: center; gap: 10px; }
 
@@ -179,7 +201,12 @@ select {
 }
 
 .seat-score { display: flex; align-items: baseline; gap: 2px; color: var(--gold); flex: 0 0 auto; }
-.seat-score strong { font-size: 1.5rem; font-variant-numeric: tabular-nums; line-height: 1; }
+.seat-score strong {
+  font-size: 1.6rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
+}
 .seat-score span { font-size: 0.72rem; color: var(--ink-dim); }
 .seat-score.is-win strong { color: var(--green); text-shadow: 0 0 14px rgba(79, 177, 115, 0.5); }
 
@@ -192,6 +219,7 @@ select {
 
 .card {
   position: relative;
+  isolation: isolate;
   /* Shrinkable width, auto height: the ratio still resolves the height,
      which it would not if flex made both axes definite. */
   flex: 0 1 var(--card-w);
@@ -201,7 +229,7 @@ select {
   border-radius: 7px;
   overflow: hidden;
   background: var(--card-face);
-  border: 1.5px solid #2a2018;
+  border: none;
   box-shadow: var(--shadow-card);
   padding: 0;
   cursor: default;
@@ -275,10 +303,13 @@ select {
   gap: 10px;
   align-items: center;
   padding: 8px 10px;
-  background: rgba(6, 22, 15, 0.42);
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 45%, rgba(120, 200, 150, 0.09), transparent 70%),
+    rgba(4, 18, 12, 0.4);
   border: 1px solid var(--edge);
   border-radius: var(--radius);
   min-height: 0;
+  box-shadow: inset 0 2px 14px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(233, 198, 103, 0.05);
 }
 
 .stock { display: grid; justify-items: center; gap: 5px; }
@@ -289,8 +320,10 @@ select {
   aspect-ratio: 100 / 150;
   border-radius: 7px;
   overflow: hidden;
-  border: 1.5px solid #2a2018;
-  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3), 4px 4px 0 rgba(0, 0, 0, 0.22), var(--shadow-card);
+  box-shadow:
+    2px 2px 0 #6d1710, 3px 3px 0 rgba(0, 0, 0, 0.3),
+    5px 5px 0 #6d1710, 6px 6px 0 rgba(0, 0, 0, 0.25),
+    8px 9px 16px rgba(0, 0, 0, 0.45);
 }
 .stock-card.is-empty { border-style: dashed; border-color: var(--edge); box-shadow: none; opacity: 0.4; }
 .stock-card .card-art { display: block; width: 100%; height: 100%; }
@@ -314,7 +347,7 @@ select {
 /* Same-month cards stack so a 뻑 pile reads as one group. */
 .floor-group { display: flex; flex: 0 0 auto; }
 .floor-group .card + .card { margin-left: calc(var(--card-w) * -0.62); }
-.floor-group.is-pile .card { box-shadow: 0 0 0 2px var(--red), var(--shadow-card); }
+.floor-group.is-pile .card { box-shadow: 0 0 0 2px var(--red), 0 0 12px rgba(216, 69, 58, 0.45), var(--shadow-card); }
 
 .action-slots { display: grid; gap: 8px; }
 
@@ -326,6 +359,7 @@ select {
   aspect-ratio: 100 / 150;
   border-radius: 7px;
   border: 1.5px dashed var(--edge);
+  background: rgba(0, 0, 0, 0.16);
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -348,11 +382,17 @@ select {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(0, 0, 0, 0.22);
+  background: rgba(0, 0, 0, 0.26);
   border: 1px solid var(--edge);
   border-radius: 9px;
   padding: 3px 6px;
   min-width: 0;
+  box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.pile.is-scoring {
+  border-color: rgba(233, 198, 103, 0.5);
+  box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.4), 0 0 10px rgba(233, 198, 103, 0.12);
 }
 
 .pile-head {
@@ -370,9 +410,8 @@ select {
 .pile-cards .card {
   flex: 0 1 calc(var(--card-w) * 0.46);
   width: calc(var(--card-w) * 0.46);
-  border-width: 1px;
   border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
 }
 .pile-cards .card + .card { margin-left: calc(var(--card-w) * -0.28); }
 .pile-cards .card:hover { z-index: 2; transform: translateY(-5px); }
@@ -384,15 +423,23 @@ select {
 .status {
   padding: 6px 14px;
   border-radius: var(--radius);
-  background: var(--panel);
+  background: linear-gradient(180deg, rgba(20, 52, 38, 0.9), rgba(6, 24, 16, 0.85));
   border: 1px solid var(--edge);
-  font-size: 0.85rem;
+  font-size: 0.86rem;
+  letter-spacing: 0.02em;
   text-align: center;
   min-height: 34px;
   display: grid;
   place-items: center;
+  box-shadow: inset 0 1px 0 rgba(233, 198, 103, 0.1);
+  transition: border-color 0.2s, color 0.2s;
 }
-.status.is-alert { border-color: var(--gold); color: var(--gold); font-weight: 700; }
+.status.is-alert {
+  border-color: var(--gold);
+  color: var(--gold);
+  font-weight: 700;
+  box-shadow: inset 0 1px 0 rgba(233, 198, 103, 0.2), 0 0 16px rgba(233, 198, 103, 0.14);
+}
 
 /* ---------------------------------------------------------------- toast */
 
@@ -506,13 +553,14 @@ select {
 
 /* ------------------------------------------------------------ responsive */
 
-@media (min-width: 620px) { :root { --card-w: 68px; } }
+@media (min-width: 620px) { :root { --card-w: 72px; } }
 @media (min-width: 900px) {
-  :root { --card-w: 76px; }
+  :root { --card-w: 84px; }
   #app { padding: 12px; gap: 10px; }
   .brand { font-size: 1.25rem; }
 }
-@media (min-width: 1200px) { :root { --card-w: 84px; } }
+@media (min-width: 1200px) { :root { --card-w: 94px; } }
+@media (min-width: 1500px) { :root { --card-w: 104px; } }
 
 @media (max-width: 760px) {
   .seat-head { flex-wrap: wrap; }

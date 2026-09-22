@@ -1,364 +1,499 @@
 // Procedural hwatu artwork.
 //
-// Each card is drawn as a flat, id-free SVG in a 100x150 viewBox: no <defs>,
-// no gradients, no clipPath. Ids would collide once the same markup is inlined
-// twice, and the woodblock originals are flat colour anyway. The rounded
-// border and the clipping live on the .card wrapper in CSS.
+// What makes a card read as hwatu rather than as clip art is the woodblock
+// treatment: every shape carries a heavy dark keyline, the colours are flat
+// and saturated, and the composition fills the frame edge to edge. So nothing
+// here is drawn without an outline, and every month lays down a full-bleed
+// ground before its motif goes on top.
+//
+// Flat and id-free on purpose: no <defs>, no gradients, no clipPath. Ids would
+// collide the moment the same markup is inlined twice.
 
-const PAL = {
-  1:  { sky: '#f6ead1', deep: '#1b5230', mid: '#2f8049', light: '#67b478', hot: '#cf2b25' },
-  2:  { sky: '#f8eedb', deep: '#4e3226', mid: '#7d5237', light: '#e2718d', hot: '#c93a5c' },
-  3:  { sky: '#fbe9e6', deep: '#8a3a49', mid: '#e08fa1', light: '#ffc9d5', hot: '#cb2b3d' },
-  4:  { sky: '#e9e4cd', deep: '#16311d', mid: '#2c5533', light: '#4d8656', hot: '#1a2a3f' },
-  5:  { sky: '#e7eef3', deep: '#25482a', mid: '#3d7643', light: '#7a5fbf', hot: '#57429f' },
-  6:  { sky: '#f7ead3', deep: '#711d26', mid: '#bd3529', light: '#e2615a', hot: '#2f6fb0' },
-  7:  { sky: '#f3e4c7', deep: '#65281f', mid: '#9e3c2c', light: '#c9664a', hot: '#2b2220' },
-  8:  { sky: '#dde5ef', deep: '#272d3c', mid: '#434c62', light: '#8a92a5', hot: '#f6e8b4' },
-  9:  { sky: '#f8f1d9', deep: '#84650f', mid: '#d29c18', light: '#f2cc45', hot: '#b32f29' },
-  10: { sky: '#faeed7', deep: '#883114', mid: '#cc5722', light: '#ee8d3c', hot: '#67472a' },
-  11: { sky: '#f4edf8', deep: '#553771', mid: '#7d53a2', light: '#b096d3', hot: '#e4b53b' },
-  12: { sky: '#e0eaf2', deep: '#1c3c5f', mid: '#2c6290', light: '#6b9fc6', hot: '#c33029' },
-};
-
-const FONT = `'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif`;
-
-/* ------------------------------------------------------------------ atoms */
-
-function petalFlower(cx, cy, r, petal, core, n = 5, rot = -90) {
-  let s = '';
-  for (let i = 0; i < n; i++) {
-    const a = ((rot + (360 / n) * i) * Math.PI) / 180;
-    const px = cx + Math.cos(a) * r * 0.72;
-    const py = cy + Math.sin(a) * r * 0.72;
-    s += `<ellipse cx="${f(px)}" cy="${f(py)}" rx="${f(r * 0.56)}" ry="${f(r * 0.46)}" fill="${petal}" transform="rotate(${f(
-      (a * 180) / Math.PI,
-    )} ${f(px)} ${f(py)})"/>`;
-  }
-  s += `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r * 0.3)}" fill="${core}"/>`;
-  return s;
-}
-
-function leaf(cx, cy, rx, ry, rot, fill, stroke) {
-  return `<ellipse cx="${f(cx)}" cy="${f(cy)}" rx="${f(rx)}" ry="${f(ry)}" fill="${fill}"${
-    stroke ? ` stroke="${stroke}" stroke-width="0.8"` : ''
-  } transform="rotate(${f(rot)} ${f(cx)} ${f(cy)})"/>`;
-}
-
-function needleSpray(cx, cy, len, rot, fill) {
-  let s = `<g transform="rotate(${f(rot)} ${f(cx)} ${f(cy)})">`;
-  for (let i = -3; i <= 3; i++) {
-    s += `<path d="M${f(cx)} ${f(cy)} L${f(cx + i * len * 0.3)} ${f(cy - len)}" stroke="${fill}" stroke-width="1.5" stroke-linecap="round" fill="none"/>`;
-  }
-  s += '</g>';
-  return s;
-}
+const INK = '#2a1d10';
+const PAPER = '#f7edd6';
+const SW = 1.7;
 
 const f = (v) => Math.round(v * 100) / 100;
+const rad = (deg) => (deg * Math.PI) / 180;
 
-/* ------------------------------------------------- per-month backgrounds  */
+/* ------------------------------------------------------------ primitives */
 
-const BG = {
-  1: (p) =>
-    `<rect width="100" height="150" fill="${p.sky}"/>` +
-    `<path d="M0 150 L0 108 Q28 96 52 112 Q76 128 100 116 L100 150 Z" fill="${p.deep}"/>` +
-    `<path d="M12 122 Q16 96 26 82" stroke="#4a3320" stroke-width="4" fill="none" stroke-linecap="round"/>` +
-    needleSpray(26, 86, 18, -10, p.mid) +
-    needleSpray(50, 104, 15, 22, p.mid) +
-    needleSpray(80, 120, 14, -26, p.light) +
-    needleSpray(14, 124, 13, -36, p.light),
-  2: (p) =>
-    `<rect width="100" height="150" fill="${p.sky}"/>` +
-    `<path d="M6 150 Q22 104 40 78 Q56 56 84 34" stroke="${p.deep}" stroke-width="5" fill="none" stroke-linecap="round"/>` +
-    `<path d="M40 78 Q56 82 70 68" stroke="${p.mid}" stroke-width="3" fill="none" stroke-linecap="round"/>` +
-    petalFlower(72, 64, 9, p.light, '#f5d34a') +
-    petalFlower(24, 112, 8, p.light, '#f5d34a') +
-    petalFlower(52, 62, 7, '#ffd6e2', '#f5d34a'),
-  3: (p) =>
-    `<rect width="100" height="150" fill="${p.sky}"/>` +
-    `<path d="M44 150 Q46 118 40 96" stroke="#6b4632" stroke-width="6" fill="none" stroke-linecap="round"/>` +
-    `<path d="M40 100 Q24 92 16 78 M42 98 Q62 92 74 80" stroke="#6b4632" stroke-width="3.5" fill="none" stroke-linecap="round"/>` +
-    petalFlower(18, 72, 12, p.light, '#e8b23c') +
-    petalFlower(76, 74, 11, p.light, '#e8b23c') +
-    petalFlower(46, 82, 10, '#ffdde5', '#e8b23c') +
-    petalFlower(62, 58, 8, p.mid, '#e8b23c'),
-  4: (p) =>
-    `<rect width="100" height="150" fill="${p.sky}"/>` +
-    `<path d="M50 0 L50 26" stroke="${p.deep}" stroke-width="3.5"/>` +
-    frond(50, 24, 1) +
-    frond(28, 42, 0.86) +
-    frond(72, 46, 0.86),
-  5: (p) =>
-    `<rect width="100" height="150" fill="${p.sky}"/>` +
-    `<path d="M0 150 L0 116 Q28 106 50 116 Q76 128 100 118 L100 150 Z" fill="${p.deep}" opacity="0.9"/>` +
-    `<path d="M18 130 Q14 92 26 62 M30 132 Q34 96 44 74 M64 130 Q68 98 60 70 M78 132 Q84 100 76 76" stroke="${p.mid}" stroke-width="3" fill="none" stroke-linecap="round"/>` +
-    irisFlower(30, 56, p) +
-    irisFlower(70, 66, p, 0.8),
-  6: (p) =>
-    `<rect width="100" height="150" fill="${p.sky}"/>` +
-    leaf(24, 116, 18, 9, -24, p.deep) +
-    leaf(74, 122, 17, 9, 20, p.deep) +
-    leaf(50, 132, 16, 8, 4, '#3d6b34') +
-    petalFlower(50, 74, 22, p.mid, '#f2c744', 7, -90) +
-    petalFlower(50, 74, 13, p.light, '#f2c744', 6, -60),
-  7: (p) =>
-    `<rect width="100" height="150" fill="${p.sky}"/>` +
-    cloverSpray(24, 120, -14, p) +
-    cloverSpray(56, 126, 10, p) +
-    cloverSpray(80, 116, 26, p),
-  8: (p) =>
-    `<rect width="100" height="150" fill="${p.sky}"/>` +
-    `<path d="M0 150 L0 100 Q26 78 54 92 Q80 104 100 88 L100 150 Z" fill="${p.deep}"/>` +
-    `<path d="M0 150 L0 124 Q34 112 62 126 Q84 136 100 128 L100 150 Z" fill="${p.mid}"/>` +
-    grass(10, 126, p.light) +
-    grass(28, 118, p.light) +
-    grass(46, 132, p.light) +
-    grass(64, 122, p.light) +
-    grass(82, 130, p.light) +
-    grass(96, 120, p.light),
-  9: (p) =>
-    `<rect width="100" height="150" fill="${p.sky}"/>` +
-    leaf(22, 118, 15, 8, -30, '#3f6b30') +
-    leaf(78, 122, 14, 8, 28, '#3f6b30') +
-    `<path d="M50 140 Q48 112 50 94" stroke="#3f6b30" stroke-width="3" fill="none"/>` +
-    petalFlower(50, 72, 24, p.mid, p.hot, 9, -90) +
-    petalFlower(50, 72, 15, p.light, p.hot, 8, -70) +
-    petalFlower(24, 44, 10, p.light, p.mid, 7, -90),
-  10: (p) =>
-    `<rect width="100" height="150" fill="${p.sky}"/>` +
-    `<path d="M52 150 Q48 122 40 104 M46 118 Q60 108 70 96" stroke="#6a4a2c" stroke-width="4.5" fill="none" stroke-linecap="round"/>` +
-    mapleLeaf(26, 60, 18, p.mid, -16) +
-    mapleLeaf(72, 76, 16, p.light, 20) +
-    mapleLeaf(46, 104, 13, p.deep, -6) +
-    mapleLeaf(58, 40, 12, p.light, 12),
-  11: (p) =>
-    `<rect width="100" height="150" fill="${p.sky}"/>` +
-    `<path d="M50 150 Q48 122 44 100" stroke="#4a3a24" stroke-width="3.5" fill="none" stroke-linecap="round"/>` +
-    paulowniaLeaf(24, 116, 26, -24, '#2f5c34') +
-    paulowniaLeaf(76, 122, 24, 26, '#2f5c34') +
-    paulowniaLeaf(50, 132, 22, 2, '#3d7340') +
-    bellCluster(34, 76, 1, p) +
-    bellCluster(62, 62, 0.82, p),
-  12: (p) =>
-    `<rect width="100" height="150" fill="${p.sky}"/>` +
-    `<path d="M0 150 L0 126 Q30 118 56 128 Q80 136 100 128 L100 150 Z" fill="${p.deep}"/>` +
-    rainStreaks(p) +
-    `<path d="M84 0 Q80 30 66 52 Q58 66 62 84" stroke="#4d6b52" stroke-width="4" fill="none" stroke-linecap="round"/>` +
-    willow(80, 16) +
-    willow(70, 40),
-};
+/** Outlined path. Every filled shape on a card goes through here. */
+function p(d, fill, sw = SW, extra = '') {
+  return `<path d="${d}" fill="${fill}" stroke="${INK}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"${extra ? ' ' + extra : ''}/>`;
+}
+/** Unstroked path, for texture and shading that must not read as an edge. */
+function fillOnly(d, fill, extra = '') {
+  return `<path d="${d}" fill="${fill}"${extra ? ' ' + extra : ''}/>`;
+}
+function circ(cx, cy, r, fill, sw = SW) {
+  return `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r)}" fill="${fill}" stroke="${INK}" stroke-width="${sw}"/>`;
+}
+function ell(cx, cy, rx, ry, rot, fill, sw = SW) {
+  return `<ellipse cx="${f(cx)}" cy="${f(cy)}" rx="${f(rx)}" ry="${f(ry)}" fill="${fill}" stroke="${INK}" stroke-width="${sw}" transform="rotate(${f(rot)} ${f(cx)} ${f(cy)})"/>`;
+}
+function line(x1, y1, x2, y2, stroke = INK, sw = SW) {
+  return `<path d="M${f(x1)} ${f(y1)} L${f(x2)} ${f(y2)}" stroke="${stroke}" stroke-width="${sw}" stroke-linecap="round" fill="none"/>`;
+}
+function poly(points, fill, sw = SW) {
+  return `<polygon points="${points.map(([x, y]) => `${f(x)} ${f(y)}`).join(' ')}" fill="${fill}" stroke="${INK}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+}
 
-function paulowniaLeaf(x, y, r, rot, fill) {
-  // Broad heart-shaped leaf, tip up, stem at the bottom.
+/* ----------------------------------------------------------------- flora */
+
+/** Spiky half-disc: one cluster of pine needles. */
+function pineFan(x, y, r, rot, fill) {
+  const pts = [];
+  const n = 15;
+  for (let i = 0; i <= n; i++) {
+    const a = rad(-182 + (184 / n) * i);
+    const rr = i % 2 ? r : r * 0.36;
+    pts.push([x + Math.cos(a) * rr, y + Math.sin(a) * rr]);
+  }
+  pts.push([x + r * 0.3, y], [x - r * 0.3, y]);
+  return `<g transform="rotate(${f(rot)} ${f(x)} ${f(y)})">${poly(pts, fill, 1.3)}</g>`;
+}
+
+/** Round-petalled blossom (plum, cherry) with stamens. */
+function blossom(x, y, r, petal, core = '#e8b23c', n = 5, rot = -90) {
+  let s = '';
+  for (let i = 0; i < n; i++) {
+    const a = rad(rot + (360 / n) * i);
+    s += circ(x + Math.cos(a) * r * 0.62, y + Math.sin(a) * r * 0.62, r * 0.5, petal, 1.3);
+  }
+  s += circ(x, y, r * 0.26, core, 1.2);
+  for (let i = 0; i < n; i++) {
+    const a = rad(rot + 36 + (360 / n) * i);
+    s += line(x + Math.cos(a) * r * 0.2, y + Math.sin(a) * r * 0.2, x + Math.cos(a) * r * 0.52, y + Math.sin(a) * r * 0.52, INK, 0.7);
+  }
+  return s;
+}
+
+/** Many-petalled flower (chrysanthemum, peony) in two rings. */
+function rosette(x, y, r, outer, inner, core, nOut = 10) {
+  let s = '';
+  for (let i = 0; i < nOut; i++) {
+    const a = rad(-90 + (360 / nOut) * i);
+    s += ell(x + Math.cos(a) * r * 0.58, y + Math.sin(a) * r * 0.58, r * 0.48, r * 0.3, (a * 180) / Math.PI, outer, 1.2);
+  }
+  const nIn = Math.max(5, nOut - 3);
+  for (let i = 0; i < nIn; i++) {
+    const a = rad(-70 + (360 / nIn) * i);
+    s += ell(x + Math.cos(a) * r * 0.3, y + Math.sin(a) * r * 0.3, r * 0.32, r * 0.22, (a * 180) / Math.PI, inner, 1.1);
+  }
+  s += circ(x, y, r * 0.18, core, 1.2);
+  return s;
+}
+
+/** Pointed leaf on a stalk. */
+function leafShape(x, y, len, wid, rot, fill, vein = true) {
+  const d = `M0 0 C ${f(-wid)} ${f(-len * 0.35)} ${f(-wid * 0.75)} ${f(-len * 0.85)} 0 ${f(-len)} C ${f(wid * 0.75)} ${f(-len * 0.85)} ${f(wid)} ${f(-len * 0.35)} 0 0 Z`;
   return (
     `<g transform="translate(${f(x)} ${f(y)}) rotate(${f(rot)})">` +
-    `<path d="M0 ${f(r * 0.12)} C ${f(-r * 0.95)} ${f(-r * 0.1)} ${f(-r * 0.7)} ${f(-r)} 0 ${f(-r * 0.86)} C ${f(r * 0.7)} ${f(-r)} ${f(r * 0.95)} ${f(-r * 0.1)} 0 ${f(r * 0.12)} Z" fill="${fill}"/>` +
-    `<path d="M0 ${f(r * 0.1)} L0 ${f(-r * 0.8)}" stroke="rgba(240,240,210,0.3)" stroke-width="${f(r * 0.07)}"/>` +
+    p(d, fill, 1.3) +
+    (vein ? line(0, -len * 0.08, 0, -len * 0.86, 'rgba(20,14,8,0.4)', 0.9) : '') +
     `</g>`
   );
 }
 
-function bellCluster(x, y, s, p) {
-  let out = `<g transform="translate(${f(x)} ${f(y)}) scale(${f(s)})">`;
-  out += `<path d="M0 16 Q-2 4 -1 -6" stroke="#4a3a24" stroke-width="1.8" fill="none"/>`;
-  for (const [dx, dy, rot] of [[-7, -2, -22], [6, -6, 18], [-1, -14, -4]]) {
-    out +=
-      `<g transform="translate(${dx} ${dy}) rotate(${rot})">` +
-      `<path d="M0 -7 Q-4.5 -7 -4.5 0 Q-4.5 6 0 6 Q4.5 6 4.5 0 Q4.5 -7 0 -7 Z" fill="${p.light}"/>` +
-      `<ellipse cx="0" cy="5" rx="4.5" ry="2.2" fill="${p.mid}"/>` +
-      `</g>`;
+/** Compound frond: paired leaflets up a stem (wisteria, bush clover). */
+function frondSpray(x, y, len, rot, dark, light, count = 7) {
+  let s = `<g transform="translate(${f(x)} ${f(y)}) rotate(${f(rot)})">`;
+  s += line(0, 0, 0, -len, INK, 1.8);
+  for (let i = 0; i < count; i++) {
+    const yy = -len * 0.12 - (len * 0.82 * i) / count;
+    const w = Math.min(len * 0.13, 8) * (1 - (i / count) * 0.45);
+    s += ell(-w * 1.1, yy, w, w * 0.58, -26, i % 2 ? dark : light, 1);
+    s += ell(w * 1.1, yy, w, w * 0.58, 26, i % 2 ? light : dark, 1);
   }
-  return out + '</g>';
+  s += ell(0, -len * 0.97, 5.2, 3.4, 0, dark, 1);
+  return s + '</g>';
 }
 
-function frond(x, y, s) {
-  let out = `<path d="M${f(x)} ${f(y)} L${f(x)} ${f(y + 52 * s)}" stroke="#16311d" stroke-width="2.5"/>`;
-  for (let i = 0; i < 6; i++) {
-    const yy = y + 8 * s + i * 8 * s;
-    const w = (12 - i * 1.2) * s;
-    out += leaf(x - w * 0.8, yy, w, w * 0.5, -22, i % 2 ? '#2c5533' : '#3c6b40');
-    out += leaf(x + w * 0.8, yy, w, w * 0.5, 22, i % 2 ? '#3c6b40' : '#2c5533');
-  }
-  return out;
+/** Tapered grass blade with a feathered head (pampas, iris, willow). */
+function blade(x, y, h, bend, fill) {
+  const tipX = x + bend;
+  const tipY = y - h;
+  const d = `M${f(x - 2.2)} ${f(y)} Q${f(x + bend * 0.3)} ${f(y - h * 0.55)} ${f(tipX)} ${f(tipY)} Q${f(x + bend * 0.45)} ${f(y - h * 0.5)} ${f(x + 2.2)} ${f(y)} Z`;
+  return p(d, fill, 1.1);
 }
 
-function irisFlower(x, y, p, s = 1) {
-  // Three drooping falls under three upright standards, which is what makes
-  // an iris read as an iris rather than as a purple smudge.
-  return (
-    `<g transform="translate(${f(x)} ${f(y)}) scale(${f(s)})">` +
-    `<path d="M0 0 Q-11 3 -13 12 Q-6 13 -2 4 Z" fill="${p.hot}"/>` +
-    `<path d="M0 0 Q11 3 13 12 Q6 13 2 4 Z" fill="${p.hot}"/>` +
-    `<path d="M0 1 Q-4 9 0 15 Q4 9 0 1 Z" fill="${p.light}"/>` +
-    `<path d="M-1 0 Q-8 -8 -5 -14 Q-1 -9 -1 -1 Z" fill="${p.light}"/>` +
-    `<path d="M1 0 Q8 -8 5 -14 Q1 -9 1 -1 Z" fill="${p.light}"/>` +
-    `<path d="M0 -1 Q-3 -11 0 -15 Q3 -11 0 -1 Z" fill="${p.hot}"/>` +
-    `<circle cx="0" cy="1" r="2.4" fill="#f3d34c"/>` +
-    `</g>`
-  );
-}
-
-function cloverSpray(x, y, rot, p) {
-  let out = `<g transform="rotate(${f(rot)} ${f(x)} ${f(y)})">`;
-  out += `<path d="M${f(x)} ${f(y)} L${f(x)} ${f(y - 56)}" stroke="${p.deep}" stroke-width="2.5" stroke-linecap="round"/>`;
-  for (let i = 0; i < 6; i++) {
-    const yy = y - 8 - i * 8;
-    const w = 9 - i * 0.9;
-    out += leaf(x - w * 0.9, yy, w, w * 0.62, -20, i % 2 ? p.mid : p.light);
-    out += leaf(x + w * 0.9, yy, w, w * 0.62, 20, i % 2 ? p.light : p.mid);
-  }
-  out += '</g>';
-  return out;
-}
-
-function grass(x, y, c) {
-  let out = '';
+/** Pampas stalk: a bent stem carrying a feathered plume at the tip. */
+function plume(x, y, h, bend, stem, head) {
+  const tipX = x + bend;
+  const tipY = y - h;
+  let s = p(`M${f(x)} ${f(y)} Q${f(x + bend * 0.25)} ${f(y - h * 0.6)} ${f(tipX)} ${f(tipY)}`, 'none', 1.6);
+  const dir = Math.atan2(tipY - (y - h * 0.6), tipX - (x + bend * 0.25));
+  s += ell(tipX + Math.cos(dir) * 6, tipY + Math.sin(dir) * 6, 9, 4.2, (dir * 180) / Math.PI, head, 1.2);
   for (let i = -2; i <= 2; i++) {
-    out += `<path d="M${f(x)} ${f(y)} Q${f(x + i * 5)} ${f(y - 22)} ${f(x + i * 11)} ${f(y - 34)}" stroke="${c}" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+    const a = dir + i * 0.34;
+    s += line(tipX, tipY, tipX + Math.cos(a) * 13, tipY + Math.sin(a) * 13, head, 1.5);
   }
-  return out;
+  return s;
 }
 
-// Unit maple outline (point up, stem at +y), scaled per call.
 const MAPLE = [
   [0, -1], [0.2, -0.56], [0.46, -0.66], [0.38, -0.3], [0.82, -0.4], [0.58, -0.06],
   [0.96, 0.08], [0.46, 0.28], [0.58, 0.54], [0.18, 0.4], [0.1, 0.86], [-0.1, 0.86],
   [-0.18, 0.4], [-0.58, 0.54], [-0.46, 0.28], [-0.96, 0.08], [-0.58, -0.06],
   [-0.82, -0.4], [-0.38, -0.3], [-0.46, -0.66], [-0.2, -0.56],
 ];
-
 function mapleLeaf(x, y, r, c, rot = 0) {
-  const pts = MAPLE.map(([px, py]) => `${f(px * r)} ${f(py * r)}`).join(' ');
   return (
     `<g transform="translate(${f(x)} ${f(y)}) rotate(${f(rot)})">` +
-    `<polygon points="${pts}" fill="${c}"/>` +
-    `<path d="M0 ${f(r * 0.8)} L0 ${f(-r * 0.25)} M0 0 L${f(-r * 0.5)} ${f(-r * 0.3)} M0 0 L${f(r * 0.5)} ${f(-r * 0.3)}" stroke="rgba(90,50,20,0.45)" stroke-width="${f(r * 0.07)}" fill="none"/>` +
+    poly(MAPLE.map(([px, py]) => [px * r, py * r]), c, 1.3) +
+    `<path d="M0 ${f(r * 0.82)} L0 ${f(-r * 0.3)} M0 ${f(-r * 0.05)} L${f(-r * 0.52)} ${f(-r * 0.3)} M0 ${f(-r * 0.05)} L${f(r * 0.52)} ${f(-r * 0.3)} M0 ${f(r * 0.2)} L${f(-r * 0.5)} ${f(r * 0.22)} M0 ${f(r * 0.2)} L${f(r * 0.5)} ${f(r * 0.22)}" stroke="rgba(30,18,8,0.45)" stroke-width="${f(Math.max(0.6, r * 0.06))}" fill="none"/>` +
     `</g>`
   );
 }
 
-function rainStreaks(p) {
-  let out = '';
-  for (let i = 0; i < 9; i++) {
-    const x = 6 + i * 11;
-    out += `<path d="M${f(x)} ${f(4 + (i % 3) * 6)} L${f(x - 7)} ${f(60 + (i % 4) * 8)}" stroke="${p.light}" stroke-width="1.5" opacity="0.7" stroke-linecap="round"/>`;
-  }
-  return out;
+function paulowniaLeaf(x, y, r, rot, fill) {
+  const d = `M0 ${f(r * 0.14)} C ${f(-r * 1.02)} ${f(-r * 0.08)} ${f(-r * 0.74)} ${f(-r * 1.04)} 0 ${f(-r * 0.9)} C ${f(r * 0.74)} ${f(-r * 1.04)} ${f(r * 1.02)} ${f(-r * 0.08)} 0 ${f(r * 0.14)} Z`;
+  return (
+    `<g transform="translate(${f(x)} ${f(y)}) rotate(${f(rot)})">` +
+    p(d, fill, 1.4) +
+    `<path d="M0 ${f(r * 0.06)} L0 ${f(-r * 0.8)}" stroke="rgba(248,244,220,0.34)" stroke-width="${f(r * 0.07)}" fill="none"/>` +
+    `</g>`
+  );
 }
 
-function willow(x, y) {
-  let out = '';
-  for (let i = 0; i < 4; i++) {
-    out += `<path d="M${f(x - i * 5)} ${f(y)} Q${f(x - i * 5 - 6)} ${f(y + 18)} ${f(x - i * 5 - 3)} ${f(y + 34)}" stroke="#5f8b63" stroke-width="1.6" fill="none"/>`;
-  }
-  return out;
+/* -------------------------------------------------------------- palettes */
+
+const PAL = {
+  1:  { sky: '#f4e3bd', band: '#e8cf9a', deep: '#14512c', mid: '#25793f', light: '#57a860', hot: '#cf2418' },
+  2:  { sky: '#f8ead0', band: '#efd9ab', deep: '#4a2c1c', mid: '#7c4c2c', light: '#e4698c', hot: '#c62a52' },
+  3:  { sky: '#fbe4e2', band: '#f3c8c8', deep: '#7d2f3d', mid: '#d9788d', light: '#ffc6d2', hot: '#c41f32' },
+  4:  { sky: '#e7dfbe', band: '#d6cba3', deep: '#122a18', mid: '#24482a', light: '#3f7145', hot: '#f0e6c4' },
+  5:  { sky: '#e3ecf2', band: '#c9dbe6', deep: '#1f4024', mid: '#356b3b', light: '#6f52b8', hot: '#4a3596' },
+  6:  { sky: '#f8ecd1', band: '#eed9a8', deep: '#5f1720', mid: '#b52c22', light: '#dd5a52', hot: '#2a66aa' },
+  7:  { sky: '#f4e2c1', band: '#e6ce9f', deep: '#57221a', mid: '#943425', light: '#c25c42', hot: '#241b18' },
+  8:  { sky: '#dbe4f0', band: '#c2cfe2', deep: '#1f2533', mid: '#3a4258', light: '#79melt', hot: '#f7e9b2' },
+  9:  { sky: '#f9f0d3', band: '#f0e0ab', deep: '#7a5c0b', mid: '#cd9612', light: '#f0c93c', hot: '#ab2a24' },
+  10: { sky: '#fbeed2', band: '#f2dca9', deep: '#7d2a0e', mid: '#c54e1b', light: '#ea8433', hot: '#5d3f22' },
+  11: { sky: '#f2eaf7', band: '#e2d3ee', deep: '#4b2f66', mid: '#744a99', light: '#a98ccd', hot: '#e0ae2f' },
+  12: { sky: '#dde8f1', band: '#c4d6e4', deep: '#16344f', mid: '#27587f', light: '#5f95bd', hot: '#bd2a22' },
+};
+PAL[8].light = '#79839b';
+
+const FONT = `'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif`;
+
+/* ------------------------------------------------------------- grounds   */
+
+/** Full-bleed sky plus a horizon band, so no card is bare paper. */
+function ground(pal, horizon = 108, curve = 14) {
+  return (
+    `<rect width="100" height="150" fill="${pal.sky}"/>` +
+    fillOnly(`M0 0 H100 V${f(horizon - 40)} Q50 ${f(horizon - 30)} 0 ${f(horizon - 38)} Z`, pal.band, 'opacity="0.55"') +
+    p(
+      `M-2 152 L-2 ${f(horizon)} Q26 ${f(horizon - curve)} 52 ${f(horizon + 4)} Q78 ${f(horizon + curve)} 102 ${f(horizon - 4)} L102 152 Z`,
+      pal.deep,
+      1.6,
+    )
+  );
 }
 
-/* ------------------------------------------------------- motif overlays  */
+const BG = {
+  1: (q) =>
+    ground(q, 112, 16) +
+    p('M18 128 Q22 96 34 74 Q40 63 52 58', '#54371f', 4.4) +
+    p('M34 78 Q48 74 62 62', '#54371f', 3.2) +
+    pineFan(52, 60, 20, 8, q.mid) +
+    pineFan(30, 80, 17, -18, q.deep) +
+    pineFan(66, 70, 15, 26, q.light) +
+    pineFan(16, 118, 15, -34, q.mid) +
+    pineFan(82, 126, 14, 28, q.deep),
 
-const MOTIF = {
-  crane: (p) =>
-    // Sun sits low-left so the 광 badge in the top-right never lands on it.
-    `<circle cx="26" cy="40" r="16" fill="${p.hot}"/>` +
-    `<ellipse cx="62" cy="86" rx="21" ry="13" fill="#fffaf0" stroke="#3a2c20" stroke-width="1.3"/>` +
-    `<path d="M80 80 Q92 74 96 62 Q94 82 86 90 Z" fill="#2b2118"/>` +
-    `<path d="M48 82 Q40 74 40 62 Q40 52 44 46" stroke="#fffaf0" stroke-width="6" fill="none" stroke-linecap="round"/>` +
-    `<path d="M48 82 Q40 74 40 62 Q40 52 44 46" stroke="#3a2c20" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.5"/>` +
-    `<circle cx="45" cy="42" r="5.4" fill="#fffaf0" stroke="#3a2c20" stroke-width="1.2"/>` +
-    `<path d="M41 38 q3 -5 8 -2" stroke="${p.hot}" stroke-width="3.4" fill="none" stroke-linecap="round"/>` +
-    `<path d="M40 43 L30 45" stroke="#3a2c20" stroke-width="1.8" stroke-linecap="round"/>` +
-    `<circle cx="44" cy="41.5" r="1" fill="#1a1410"/>` +
-    `<path d="M52 88 Q62 94 74 88" stroke="#3a2c20" stroke-width="1.1" fill="none"/>` +
-    `<path d="M56 98 L54 118 M68 98 L70 118" stroke="#3a2c20" stroke-width="2" stroke-linecap="round"/>` +
-    `<path d="M50 118 L58 118 M66 118 L74 118" stroke="#3a2c20" stroke-width="2" stroke-linecap="round"/>`,
-  curtain: (p) =>
-    `<rect x="6" y="6" width="88" height="34" rx="3" fill="#fbf1e2" stroke="#8a3a49" stroke-width="1.4"/>` +
-    `<rect x="6" y="6" width="88" height="8" fill="${p.hot}"/>` +
-    `<rect x="6" y="20" width="88" height="8" fill="${p.hot}"/>` +
-    `<rect x="6" y="34" width="88" height="6" fill="${p.hot}"/>` +
-    `<path d="M12 40 q10 12 0 20 M32 40 q10 12 0 20 M52 40 q10 12 0 20 M72 40 q10 12 0 20" stroke="#8a3a49" stroke-width="1.4" fill="none"/>`,
-  warbler: (p) =>
-    `<ellipse cx="52" cy="46" rx="16" ry="11" fill="#5f7a2e" transform="rotate(-16 52 46)"/>` +
-    `<circle cx="38" cy="39" r="7.5" fill="#6f8c38"/>` +
-    `<path d="M31 38 L22 41 L31 43 Z" fill="#e0a92c"/>` +
-    `<circle cx="37" cy="37.5" r="1.4" fill="#1a1410"/>` +
-    `<path d="M56 42 Q72 40 80 30 Q72 46 60 52 Z" fill="#8aa848"/>` +
-    `<path d="M62 52 Q76 58 84 70" stroke="#5f7a2e" stroke-width="4" fill="none" stroke-linecap="round"/>` +
-    `<path d="M44 56 L42 64 M52 56 L54 64" stroke="#3a2c20" stroke-width="1.6" stroke-linecap="round"/>`,
-  cuckoo: (p) =>
-    `<circle cx="24" cy="30" r="14" fill="#efe7c8"/>` +
-    `<ellipse cx="46" cy="70" rx="17" ry="11" fill="#22303c" transform="rotate(-20 46 70)"/>` +
-    `<circle cx="32" cy="62" r="7" fill="#2c3d4c"/>` +
-    `<path d="M25 61 L16 64 L25 66 Z" fill="#d9a63c"/>` +
-    `<circle cx="31" cy="60.5" r="1.4" fill="#f2efe4"/>` +
-    `<path d="M50 66 Q66 62 74 52 Q66 72 54 76 Z" fill="#33485a"/>` +
-    `<path d="M56 76 Q70 84 78 96" stroke="#22303c" stroke-width="4" fill="none" stroke-linecap="round"/>`,
-  bridge: (p) =>
-    `<path d="M4 92 L96 68" stroke="#7a4a2c" stroke-width="7" stroke-linecap="round" fill="none"/>` +
-    `<path d="M4 100 L96 76" stroke="#5c3520" stroke-width="3" stroke-linecap="round" fill="none"/>` +
-    `<path d="M16 90 L16 106 M40 84 L40 100 M64 78 L64 94 M88 72 L88 88" stroke="#5c3520" stroke-width="3" stroke-linecap="round"/>` +
-    `<path d="M6 86 L94 62" stroke="#8f5a36" stroke-width="2" stroke-linecap="round" fill="none"/>`,
-  butterfly: (p) =>
-    butterflyAt(34, 44, 1, p) + butterflyAt(68, 30, 0.72, p),
-  boar: (p) =>
-    `<ellipse cx="52" cy="66" rx="26" ry="16" fill="#3a2c22"/>` +
-    `<path d="M28 60 Q18 56 14 62 Q10 70 20 72 L30 72 Z" fill="#4a382b"/>` +
-    `<path d="M16 64 L8 60 M16 68 L8 70" stroke="#efe7d2" stroke-width="2" stroke-linecap="round"/>` +
-    `<circle cx="25" cy="60" r="1.5" fill="#efe7d2"/>` +
-    `<path d="M32 54 L28 46 L38 52 Z" fill="#4a382b"/>` +
-    `<path d="M40 80 L38 92 M54 82 L54 94 M68 78 L70 90" stroke="#2b2018" stroke-width="4" stroke-linecap="round"/>` +
-    `<path d="M76 58 Q86 52 84 44" stroke="#3a2c22" stroke-width="3" fill="none" stroke-linecap="round"/>` +
-    `<path d="M38 52 Q52 44 66 52" stroke="#5e4938" stroke-width="2" fill="none"/>`,
-  moon: (p) => `<circle cx="52" cy="46" r="25" fill="${p.hot}" stroke="#d6c07c" stroke-width="1.5"/>`,
-  geese: (p) =>
-    goose(32, 44, 1) + goose(58, 26, 0.84) + goose(64, 62, 0.78),
-  sake: (p) =>
-    `<path d="M26 60 Q50 54 74 60 L66 84 Q50 90 34 84 Z" fill="${p.hot}" stroke="#7a1f1c" stroke-width="1.4"/>` +
-    `<ellipse cx="50" cy="60" rx="24" ry="7" fill="#f3e6c6" stroke="#7a1f1c" stroke-width="1.2"/>` +
-    `<rect x="44" y="86" width="12" height="7" fill="#7a1f1c"/>` +
-    `<ellipse cx="50" cy="96" rx="19" ry="5" fill="${p.hot}" stroke="#7a1f1c" stroke-width="1.2"/>` +
-    `<text x="50" y="79" font-size="15" font-family="serif" fill="#f7e9b8" text-anchor="middle">壽</text>`,
-  deer: (p) =>
-    `<ellipse cx="54" cy="70" rx="22" ry="13" fill="#8a5a33"/>` +
-    `<path d="M36 62 Q28 54 30 44 Q31 38 37 40 Q41 42 41 50 L40 60 Z" fill="#9a6a3d"/>` +
-    `<path d="M34 42 Q28 32 30 24 M34 36 Q26 32 22 26 M39 40 Q44 30 42 22 M39 34 Q46 30 50 24" stroke="#6b4522" stroke-width="2.2" fill="none" stroke-linecap="round"/>` +
-    `<circle cx="34" cy="48" r="1.5" fill="#241a10"/>` +
-    `<path d="M42 82 L40 96 M56 84 L56 98 M70 80 L72 94" stroke="#6b4522" stroke-width="3.5" stroke-linecap="round"/>` +
-    `<circle cx="50" cy="64" r="2" fill="#e8d3ab"/><circle cx="60" cy="70" r="2" fill="#e8d3ab"/><circle cx="66" cy="62" r="2" fill="#e8d3ab"/>`,
-  phoenix: (p) =>
-    `<path d="M46 86 Q34 78 34 62 Q34 46 50 40 Q64 35 72 44 Q78 52 70 58 L58 64 Q50 70 50 86 Z" fill="${p.hot}" stroke="#7a5510" stroke-width="1.2"/>` +
-    `<circle cx="70" cy="40" r="7" fill="#f2d375" stroke="#7a5510" stroke-width="1.2"/>` +
-    `<path d="M77 39 L86 42 L77 44 Z" fill="#c93c23"/>` +
-    `<circle cx="71" cy="38.5" r="1.4" fill="#2b2010"/>` +
-    `<path d="M68 32 q3 -8 9 -9 q-3 7 -4 10" fill="#c93c23"/>` +
-    `<path d="M44 74 Q24 82 12 102 M46 80 Q30 94 24 116 M50 84 Q42 102 44 124" stroke="${p.hot}" stroke-width="3" fill="none" stroke-linecap="round"/>` +
-    `<path d="M40 60 Q26 52 20 38 Q34 46 44 48 Z" fill="#f2d375"/>`,
-  rainman: (p) =>
-    `<path d="M20 44 Q40 20 62 44 Z" fill="#3a2c22" stroke="#20160f" stroke-width="1.4"/>` +
-    `<path d="M41 44 L41 88" stroke="#5a4433" stroke-width="2.4"/>` +
-    `<ellipse cx="46" cy="66" rx="9" ry="10" fill="#f0e3c8" stroke="#3a2c22" stroke-width="1.2"/>` +
-    `<path d="M38 84 Q46 72 56 82 L62 116 Q46 122 32 114 Z" fill="#2f4f72" stroke="#1b3350" stroke-width="1.2"/>` +
-    `<path d="M46 60 q2 4 0 7" stroke="#3a2c22" stroke-width="1.2" fill="none"/>` +
-    `<circle cx="42" cy="64" r="1.2" fill="#2b2018"/><circle cx="50" cy="64" r="1.2" fill="#2b2018"/>` +
-    `<path d="M62 100 L76 92" stroke="#5a4433" stroke-width="2.4" stroke-linecap="round"/>`,
-  swallow: (p) =>
-    `<ellipse cx="50" cy="60" rx="18" ry="10" fill="#1f2e3c" transform="rotate(-18 50 60)"/>` +
-    `<circle cx="34" cy="52" r="7" fill="#26374a"/>` +
-    `<path d="M27 51 L18 54 L27 56 Z" fill="#d9a63c"/>` +
-    `<circle cx="33" cy="50.5" r="1.3" fill="#e9f0f5"/>` +
-    `<path d="M34 58 q6 4 12 2" stroke="#c94e3c" stroke-width="2.4" fill="none"/>` +
-    `<path d="M54 54 Q70 46 80 32 Q72 56 60 62 Z" fill="#2c4256"/>` +
-    `<path d="M62 68 L86 82 L64 76 L80 94 Z" fill="#1f2e3c"/>`,
+  2: (q) =>
+    ground(q, 126, 8) +
+    p('M4 148 Q20 106 42 80 Q60 58 92 30', q.deep, 5) +
+    p('M42 80 Q58 84 72 70 M28 104 Q40 110 50 104', q.mid, 3.2) +
+    blossom(74, 64, 11, q.light) +
+    blossom(24, 110, 10, q.light) +
+    blossom(52, 60, 8.5, '#ffd8e2') +
+    blossom(40, 92, 7.5, q.light) +
+    blossom(88, 36, 7, '#ffd8e2'),
+
+  3: (q) =>
+    ground(q, 128, 8) +
+    p('M46 150 Q48 122 42 100', '#6b4630', 5.5) +
+    p('M42 102 Q26 96 14 80 M44 100 Q64 96 78 82', '#6b4630', 3.6) +
+    blossom(16, 74, 13, q.light) +
+    blossom(78, 76, 12, q.light) +
+    blossom(46, 86, 11, '#ffdfe6') +
+    blossom(62, 58, 9, q.mid) +
+    blossom(30, 52, 8, q.light),
+
+  4: (q) =>
+    `<rect width="100" height="150" fill="${q.sky}"/>` +
+    fillOnly('M0 96 H100 V150 H0 Z', q.band, 'opacity="0.5"') +
+    // 흑싸리 hangs: the fronds are drawn downward from the top edge.
+    frondSpray(50, 2, 82, 180, q.deep, q.mid, 8) +
+    frondSpray(22, 2, 68, 194, q.mid, q.deep, 7) +
+    frondSpray(78, 2, 66, 166, q.mid, q.deep, 7) +
+    frondSpray(36, 74, 52, 187, q.deep, q.mid, 5) +
+    frondSpray(66, 80, 48, 173, q.deep, q.mid, 5),
+
+  5: (q) =>
+    `<rect width="100" height="150" fill="${q.sky}"/>` +
+    p('M-2 152 L-2 116 Q26 106 52 118 Q78 130 102 118 L102 152 Z', '#2f6a92', 1.6) +
+    fillOnly('M6 130 H34 M50 138 H80 M14 142 H44', '#bcd8e8', 'stroke="#bcd8e8" stroke-width="2" stroke-linecap="round"') +
+    blade(20, 122, 58, -8, q.mid) +
+    blade(30, 126, 66, 6, q.deep) +
+    blade(66, 124, 62, -6, q.deep) +
+    blade(78, 120, 52, 10, q.mid) +
+    iris(30, 58, 1) +
+    iris(70, 70, 0.84),
+
+  6: (q) =>
+    ground(q, 124, 10) +
+    leafShape(20, 134, 32, 16, -38, '#2f6330') +
+    leafShape(80, 138, 30, 15, 36, '#2f6330') +
+    leafShape(50, 146, 28, 14, 4, '#3c7a38') +
+    leafShape(34, 122, 24, 12, -16, '#3c7a38') +
+    line(50, 142, 50, 92, '#3c7a38', 3.2) +
+    rosette(50, 70, 30, q.mid, q.light, '#f0c33c', 11),
+
+  7: (q) =>
+    ground(q, 130, 8) +
+    frondSpray(20, 138, 72, -17, q.mid, q.light, 6) +
+    frondSpray(48, 146, 84, -3, q.deep, q.mid, 7) +
+    frondSpray(76, 140, 74, 14, q.mid, q.light, 6) +
+    frondSpray(94, 132, 58, 28, q.deep, q.mid, 5),
+
+  8: (q) =>
+    `<rect width="100" height="150" fill="${q.sky}"/>` +
+    fillOnly('M0 60 H100 V104 H0 Z', q.band, 'opacity="0.5"') +
+    p('M-2 152 L-2 96 Q24 70 52 88 Q80 106 102 84 L102 152 Z', q.deep, 1.6) +
+    p('M-2 152 L-2 124 Q30 110 60 126 Q84 138 102 128 L102 152 Z', q.mid, 1.4) +
+    blade(16, 140, 40, -12, q.mid) + blade(38, 146, 34, 9, q.mid) +
+    blade(60, 144, 36, -9, q.mid) + blade(84, 146, 32, 11, q.mid) +
+    plume(10, 136, 62, -16, q.light, '#eef2f8') +
+    plume(30, 130, 74, 13, q.light, '#eef2f8') +
+    plume(52, 140, 66, -14, q.light, '#dfe6f0') +
+    plume(72, 132, 78, 14, q.light, '#eef2f8') +
+    plume(93, 138, 58, -13, q.light, '#dfe6f0'),
+
+  9: (q) =>
+    ground(q, 128, 8) +
+    leafShape(22, 122, 22, 11, -36, '#3a6a2c') +
+    leafShape(78, 126, 21, 10, 34, '#3a6a2c') +
+    line(50, 132, 50, 92, '#3a6a2c', 3) +
+    rosette(50, 72, 26, q.mid, q.light, q.hot, 12) +
+    rosette(24, 44, 12, q.light, q.mid, q.hot, 9),
+
+  10: (q) =>
+    ground(q, 132, 8) +
+    p('M52 150 Q46 122 36 102 M44 116 Q60 106 72 92', '#6b4522', 4.6) +
+    mapleLeaf(26, 58, 19, q.mid, -16) +
+    mapleLeaf(72, 76, 17, q.light, 22) +
+    mapleLeaf(46, 102, 14, q.deep, -6) +
+    mapleLeaf(60, 38, 13, q.light, 14) +
+    mapleLeaf(86, 116, 11, q.mid, 30),
+
+  11: (q) =>
+    ground(q, 132, 8) +
+    line(50, 146, 44, 96, '#4a3a20', 3.6) +
+    paulowniaLeaf(20, 134, 34, -30, '#27552c') +
+    paulowniaLeaf(80, 140, 32, 30, '#27552c') +
+    paulowniaLeaf(50, 148, 32, 3, '#356b35') +
+    paulowniaLeaf(34, 118, 22, -12, '#3f7a3c') +
+    bells(30, 74, 1.05, q) +
+    bells(64, 56, 0.86, q),
+
+  12: (q) =>
+    `<rect width="100" height="150" fill="${q.sky}"/>` +
+    rain(q) +
+    p('M-2 152 L-2 124 Q28 114 56 126 Q80 136 102 126 L102 152 Z', q.deep, 1.6) +
+    p('M92 -2 Q86 34 70 56 Q60 70 64 88', '#4a6b4e', 4.4) +
+    willow(90, 12, 3) +
+    willow(80, 40, 3) +
+    willow(70, 70, 2),
 };
 
-function butterflyAt(x, y, s, p) {
+function iris(x, y, s) {
   return (
     `<g transform="translate(${f(x)} ${f(y)}) scale(${f(s)})">` +
-    `<path d="M0 0 Q-20 -18 -24 -2 Q-26 12 -4 8 Z" fill="${p.hot}" stroke="#1f3f66" stroke-width="1"/>` +
-    `<path d="M0 0 Q20 -18 24 -2 Q26 12 4 8 Z" fill="${p.hot}" stroke="#1f3f66" stroke-width="1"/>` +
-    `<path d="M-3 0 Q-16 10 -12 20 Q-4 22 -2 10 Z" fill="#f2d35a" stroke="#1f3f66" stroke-width="0.8"/>` +
-    `<path d="M3 0 Q16 10 12 20 Q4 22 2 10 Z" fill="#f2d35a" stroke="#1f3f66" stroke-width="0.8"/>` +
-    `<ellipse cx="0" cy="4" rx="2.6" ry="10" fill="#26364a"/>` +
-    `<path d="M-1 -6 Q-6 -16 -12 -18 M1 -6 Q6 -16 12 -18" stroke="#26364a" stroke-width="1.2" fill="none"/>` +
+    p('M0 0 Q-12 4 -15 14 Q-7 15 -2 5 Z', PAL[5].hot, 1.2) +
+    p('M0 0 Q12 4 15 14 Q7 15 2 5 Z', PAL[5].hot, 1.2) +
+    p('M0 1 Q-5 10 0 17 Q5 10 0 1 Z', PAL[5].light, 1.2) +
+    p('M-1 0 Q-9 -9 -6 -16 Q-1 -10 -1 -1 Z', PAL[5].light, 1.2) +
+    p('M1 0 Q9 -9 6 -16 Q1 -10 1 -1 Z', PAL[5].light, 1.2) +
+    p('M0 -1 Q-4 -12 0 -17 Q4 -12 0 -1 Z', PAL[5].hot, 1.2) +
+    circ(0, 1, 2.8, '#f2cf44', 1.1) +
+    `</g>`
+  );
+}
+
+function bells(x, y, s, q) {
+  let out = `<g transform="translate(${f(x)} ${f(y)}) scale(${f(s)})">`;
+  out += line(0, 18, -1, -8, '#4a3a20', 2);
+  for (const [dx, dy, r] of [[-8, -2, -24], [7, -7, 20], [-1, -16, -4]]) {
+    out +=
+      `<g transform="translate(${dx} ${dy}) rotate(${r})">` +
+      p('M0 -8 Q-5 -8 -5 0 Q-5 7 0 7 Q5 7 5 0 Q5 -8 0 -8 Z', q.light, 1.2) +
+      ell(0, 6, 5, 2.6, 0, q.mid, 1.1) +
+      `</g>`;
+  }
+  return out + '</g>';
+}
+
+function rain(q) {
+  let out = '';
+  for (let i = 0; i < 11; i++) {
+    const x = 2 + i * 9.5;
+    out += line(x, 2 + (i % 3) * 7, x - 9, 74 + (i % 4) * 9, q.light, 1.8);
+  }
+  return out;
+}
+
+function willow(x, y, n = 3) {
+  let out = '';
+  for (let i = 0; i < n; i++) {
+    const xx = x - i * 7;
+    const sway = -9 - i * 2;
+    // Sample the strand so each leaf sits on the curve instead of beside it.
+    const at = (t) => [
+      (1 - t) * (1 - t) * xx + 2 * (1 - t) * t * (xx + sway) + t * t * (xx + sway * 0.6),
+      (1 - t) * (1 - t) * y + 2 * (1 - t) * t * (y + 20) + t * t * (y + 42),
+    ];
+    const [mx, my] = at(0.5);
+    const [ex, ey] = at(1);
+    out += p(`M${f(xx)} ${f(y)} Q${f(xx + sway)} ${f(y + 20)} ${f(ex)} ${f(ey)}`, 'none', 1.5);
+    for (const t of [0.28, 0.52, 0.76, 0.96]) {
+      const [lx, ly] = at(t);
+      out += ell(lx - 3.4, ly, 4.2, 1.7, -32, '#5f8b5f', 0.9);
+      out += ell(lx + 3.4, ly + 4, 4.2, 1.7, 28, '#4e7a4e', 0.9);
+    }
+    void mx; void my;
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------- creatures */
+
+const MOTIF = {
+  crane: (q) =>
+    circ(27, 34, 17, q.hot, 2) +
+    // Neck is a closed tapered shape; an open path with a fill blobs.
+    p('M40 44 Q32 62 42 84 L54 84 Q45 62 50 45 Z', '#fffbf2', 1.7) +
+    ell(64, 90, 23, 14, -4, '#fffbf2', 1.8) +
+    p('M82 84 Q96 76 100 62 Q99 88 89 97 Z', '#241a12', 1.5) +
+    fillOnly('M48 84 Q62 78 78 84 Q62 92 48 88 Z', '#e9e2d2') +
+    circ(45, 39, 7, '#fffbf2', 1.7) +
+    p('M40 33 Q45 27 51 32 Q46 36 41 36 Z', q.hot, 1.2) +
+    p('M38 40 L26 42 L38 45 Z', '#e8a52c', 1.3) +
+    circ(45, 38, 1.4, INK, 0) +
+    line(57, 103, 55, 122) + line(70, 103, 72, 122) +
+    line(50, 122, 61, 122) + line(66, 122, 78, 122),
+
+  curtain: (q) =>
+    p('M4 4 H96 V42 H4 Z', '#fdf4e6', 1.8) +
+    fillOnly('M4 4 H96 V13 H4 Z', q.hot) +
+    fillOnly('M4 20 H96 V29 H4 Z', q.hot) +
+    fillOnly('M4 36 H96 V42 H4 Z', q.hot) +
+    p('M4 4 H96 V42 H4 Z', 'none', 1.8) +
+    p('M14 42 Q24 54 14 64 M38 42 Q48 54 38 64 M62 42 Q72 54 62 64 M86 42 Q96 54 86 64', 'none', 1.6),
+
+  warbler: (q) =>
+    ell(54, 48, 17, 12, -16, '#5d7a26', 1.7) +
+    fillOnly('M46 42 Q56 38 66 44 Q58 50 48 48 Z', '#7d9c38') +
+    circ(38, 40, 8, '#6f8f30', 1.6) +
+    p('M31 38 L20 41 L31 45 Z', '#e0a92c', 1.3) +
+    circ(37, 37.5, 1.6, INK, 0) +
+    p('M58 42 Q76 38 86 26 Q78 48 64 54 Z', '#8fae44', 1.5) +
+    p('M64 54 Q80 62 90 76', 'none', 4) +
+    line(46, 58, 43, 68) + line(56, 58, 59, 68),
+
+  cuckoo: (q) =>
+    circ(24, 28, 15, q.hot, 1.8) +
+    ell(48, 70, 19, 12, -18, '#1d2a34', 1.7) +
+    circ(32, 60, 8, '#28394a', 1.6) +
+    p('M25 58 L14 62 L25 65 Z', '#d9a63c', 1.3) +
+    circ(31, 57.5, 1.6, '#f2efe4', 0) +
+    p('M52 64 Q70 58 80 46 Q70 72 56 78 Z', '#30485c', 1.5) +
+    p('M58 78 Q74 88 84 102', 'none', 4) +
+    line(42, 80, 39, 90) + line(52, 80, 55, 90),
+
+  bridge: (q) =>
+    p('M2 96 L98 68 L98 76 L2 104 Z', '#8a5630', 1.7) +
+    p('M2 104 L98 76 L98 82 L2 110 Z', '#5f3820', 1.5) +
+    line(14, 98, 14, 118, INK, 3.4) + line(38, 91, 38, 111, INK, 3.4) +
+    line(62, 84, 62, 104, INK, 3.4) + line(86, 77, 86, 97, INK, 3.4) +
+    fillOnly('M2 96 L98 68 L98 71 L2 99 Z', 'rgba(255,240,210,0.35)'),
+
+  butterfly: (q) => wing(34, 44, 1, q) + wing(70, 28, 0.7, q),
+
+  boar: (q) =>
+    ell(54, 66, 27, 17, 0, '#3a2a1e', 1.8) +
+    fillOnly('M40 56 Q56 48 72 56 Q58 62 42 62 Z', '#57412e') +
+    p('M30 58 Q16 54 11 62 Q8 72 20 74 L32 73 Z', '#4a382b', 1.6) +
+    p('M15 64 L5 59 M15 69 L5 72', 'none', 2.2) +
+    circ(25, 59, 1.7, '#efe7d2', 0) +
+    p('M33 52 L28 42 L41 50 Z', '#4a382b', 1.4) +
+    line(41, 82, 39, 96, INK, 4.4) + line(55, 84, 55, 98, INK, 4.4) + line(69, 80, 71, 94, INK, 4.4) +
+    p('M79 58 Q90 51 87 42', 'none', 3),
+
+  moon: (q) => circ(52, 46, 26, q.hot, 2.2),
+
+  geese: (q) => goose(32, 42, 1) + goose(60, 24, 0.82) + goose(64, 62, 0.76),
+
+  sake: (q) =>
+    p('M24 58 Q50 51 76 58 L67 84 Q50 91 33 84 Z', q.hot, 1.8) +
+    ell(50, 58, 26, 8, 0, '#f6ecd2', 1.6) +
+    p('M44 86 H56 V94 H44 Z', '#7a1f1c', 1.4) +
+    ell(50, 98, 20, 5.5, 0, q.hot, 1.5) +
+    `<text x="50" y="79" font-size="16" font-family="serif" font-weight="700" fill="#f9eebd" text-anchor="middle">壽</text>`,
+
+  deer: (q) =>
+    ell(56, 72, 23, 14, 0, '#8a5a33', 1.8) +
+    p('M36 62 Q27 54 29 43 Q31 36 38 39 Q43 42 42 51 L41 62 Z', '#9a6a3d', 1.6) +
+    p('M32 40 Q25 30 27 20 M32 33 Q23 30 18 23 M40 38 Q46 28 44 18 M40 31 Q48 28 53 21', 'none', 2.4) +
+    circ(34, 47, 1.7, INK, 0) +
+    p('M28 42 L20 40', 'none', 1.6) +
+    line(43, 85, 41, 100, INK, 3.8) + line(57, 86, 57, 101, INK, 3.8) + line(71, 82, 73, 97, INK, 3.8) +
+    circ(50, 66, 2.4, '#ecd9b2', 0.9) + circ(61, 72, 2.4, '#ecd9b2', 0.9) + circ(67, 63, 2.2, '#ecd9b2', 0.9),
+
+  phoenix: (q) =>
+    p('M46 88 Q32 80 32 62 Q32 44 50 38 Q66 32 75 43 Q82 52 72 59 L58 66 Q50 72 50 88 Z', q.hot, 1.8) +
+    fillOnly('M44 58 Q56 50 68 54 Q58 62 46 64 Z', '#f6dd90') +
+    circ(73, 39, 7.5, '#f4d87c', 1.6) +
+    p('M80 37 L91 41 L80 44 Z', '#c93c23', 1.3) +
+    circ(74, 37.5, 1.5, INK, 0) +
+    p('M70 30 Q73 21 81 20 Q77 27 76 31 Z', '#c93c23', 1.2) +
+    p('M42 74 Q20 82 8 104 M45 80 Q28 94 21 118 M50 84 Q41 104 44 128', 'none', 2.8) +
+    p('M40 58 Q24 50 17 34 Q33 44 45 46 Z', '#f4d87c', 1.5),
+
+  rainman: (q) =>
+    p('M16 44 Q42 16 68 44 Z', '#3a2c22', 1.8) +
+    fillOnly('M30 40 Q42 26 54 40 Z', '#57422f') +
+    line(42, 44, 42, 92, '#5a4433', 2.6) +
+    ell(46, 66, 9.5, 10.5, 0, '#f3e6cc', 1.6) +
+    p('M37 84 Q46 71 57 82 L64 118 Q46 125 30 116 Z', '#2f4f72', 1.7) +
+    circ(42, 64, 1.4, INK, 0) + circ(50, 64, 1.4, INK, 0) +
+    p('M43 71 Q46 74 49 71', 'none', 1.1) +
+    p('M62 102 L78 93', 'none', 2.6),
+
+  swallow: (q) =>
+    ell(50, 58, 19, 11, -18, '#1b2a38', 1.7) +
+    circ(33, 50, 7.5, '#22364a', 1.6) +
+    p('M26 48 L15 52 L26 55 Z', '#d9a63c', 1.3) +
+    circ(32, 48.5, 1.5, '#e9f0f5', 0) +
+    p('M33 57 Q40 61 47 58 Q40 63 33 61 Z', '#c94e3c', 1.2) +
+    p('M55 52 Q72 44 83 29 Q74 56 61 62 Z', '#2a4055', 1.5) +
+    p('M62 68 L88 84 L65 77 L82 98 Z', '#1b2a38', 1.5),
+};
+
+function wing(x, y, s, q) {
+  return (
+    `<g transform="translate(${f(x)} ${f(y)}) scale(${f(s)})">` +
+    p('M0 0 Q-21 -19 -26 -2 Q-28 13 -4 9 Z', q.hot, 1.5) +
+    p('M0 0 Q21 -19 26 -2 Q28 13 4 9 Z', q.hot, 1.5) +
+    p('M-3 0 Q-17 11 -13 21 Q-4 23 -2 11 Z', '#f2d35a', 1.3) +
+    p('M3 0 Q17 11 13 21 Q4 23 2 11 Z', '#f2d35a', 1.3) +
+    fillOnly('M-18 -6 q-3 6 2 9 q6 -2 7 -8 Z', '#f6e7a8') +
+    fillOnly('M18 -6 q3 6 -2 9 q-6 -2 -7 -8 Z', '#f6e7a8') +
+    ell(0, 4, 3, 10.5, 0, '#26364a', 1.3) +
+    p('M-1 -6 Q-7 -17 -14 -19 M1 -6 Q7 -17 14 -19', 'none', 1.3) +
     `</g>`
   );
 }
@@ -366,73 +501,68 @@ function butterflyAt(x, y, s, p) {
 function goose(x, y, s) {
   return (
     `<g transform="translate(${f(x)} ${f(y)}) scale(${f(s)})">` +
-    `<ellipse cx="0" cy="0" rx="12" ry="6.5" fill="#f3ead2" stroke="#2a3040" stroke-width="1"/>` +
-    `<circle cx="-11" cy="-4" r="4.4" fill="#f3ead2" stroke="#2a3040" stroke-width="1"/>` +
-    `<path d="M-15 -4 L-21 -3 L-15 -1 Z" fill="#d98c2c"/>` +
-    `<circle cx="-11.5" cy="-5" r="1" fill="#2a3040"/>` +
-    `<path d="M-2 -3 Q6 -16 18 -18 Q10 -4 4 0 Z" fill="#8a92a5" stroke="#2a3040" stroke-width="0.9"/>` +
-    `<path d="M10 2 L20 4" stroke="#2a3040" stroke-width="1.6" stroke-linecap="round"/>` +
+    ell(0, 0, 13, 7, 0, '#f6eeda', 1.5) +
+    circ(-12, -4.5, 4.8, '#f6eeda', 1.4) +
+    p('M-16 -4 L-23 -3 L-16 -1 Z', '#d98c2c', 1.1) +
+    circ(-12.5, -5.5, 1.2, INK, 0) +
+    p('M-2 -3 Q7 -17 19 -19 Q10 -4 4 0 Z', '#7d8699', 1.4) +
+    p('M10 2 L21 4', 'none', 1.8) +
     `</g>`
   );
 }
 
-/* ------------------------------------------------------------- overlays  */
+/* --------------------------------------------------------------- ribbons */
 
 function ribbonBand(kind) {
   const spec = {
-    hong: { fill: '#d8352c', edge: '#8a1f19', text: '홍단', ink: '#7a1611' },
-    cho: { fill: '#d8352c', edge: '#8a1f19', text: '초단', ink: '#1d3f85' },
-    cheong: { fill: '#3f5ec0', edge: '#22357a', text: '청단', ink: '#e9eeff' },
-    plain: { fill: '#c9302a', edge: '#83201b', text: '', ink: '#fff' },
+    hong: { fill: '#cf2a22', text: '홍단', ink: '#6d120e' },
+    cho: { fill: '#cf2a22', text: '초단', ink: '#16307a' },
+    cheong: { fill: '#2f4fb5', text: '청단', ink: '#eef2ff' },
+    plain: { fill: '#c02c24', text: '', ink: '#fff' },
   }[kind];
   return (
-    `<path d="M8 58 L92 44 L92 76 L8 90 Z" fill="${spec.fill}" stroke="${spec.edge}" stroke-width="1.6"/>` +
-    `<path d="M8 62 L92 48 M8 86 L92 72" stroke="${spec.edge}" stroke-width="0.9" opacity="0.7"/>` +
+    p('M5 57 L95 42 L95 78 L5 93 Z', spec.fill, 2) +
+    fillOnly('M5 61 L95 46 L95 50 L5 65 Z', 'rgba(255,255,255,0.22)') +
+    fillOnly('M5 85 L95 70 L95 75 L5 90 Z', 'rgba(0,0,0,0.16)') +
     (spec.text
-      ? `<text x="50" y="73" font-size="17" font-family="${FONT}" font-weight="700" fill="${spec.ink}" text-anchor="middle" transform="rotate(-9.5 50 73)">${spec.text}</text>`
+      ? `<text x="50" y="74" font-size="19" font-family="${FONT}" font-weight="800" fill="${spec.ink}" text-anchor="middle" transform="rotate(-9.5 50 74)">${spec.text}</text>`
       : '')
   );
 }
 
-function badge(c) {
-  if (c.type === 'gwang') {
-    return (
-      `<circle cx="82" cy="18" r="12" fill="#f3c430" stroke="#8a6410" stroke-width="1.6"/>` +
-      `<text x="82" y="24" font-size="14" font-family="${FONT}" font-weight="800" fill="#6b4a05" text-anchor="middle">광</text>`
-    );
-  }
-  if (c.type === 'animal') {
-    const label = c.godori ? '고' : '열';
-    return (
-      `<circle cx="82" cy="18" r="11" fill="${c.godori ? '#d8352c' : '#2f6fb0'}" stroke="#123" stroke-width="1.4"/>` +
-      `<text x="82" y="23.5" font-size="12" font-family="${FONT}" font-weight="800" fill="#fff" text-anchor="middle">${label}</text>`
-    );
-  }
-  if (c.type === 'junk' && c.pi === 2) {
-    return (
-      `<circle cx="82" cy="18" r="11" fill="#2f2f2f" stroke="#111" stroke-width="1.4"/>` +
-      `<text x="82" y="23.5" font-size="12" font-family="${FONT}" font-weight="800" fill="#ffd964" text-anchor="middle">쌍</text>`
-    );
-  }
+/* ---------------------------------------------------------------- chrome */
+
+function seal(c) {
+  const box = (fill, label, ink) =>
+    p('M68 4 H96 V30 H68 Z', fill, 1.8) +
+    fillOnly('M70 6 H94 V28 H70 Z', 'none', `stroke="${ink}" stroke-width="0.9" opacity="0.6"`) +
+    `<text x="82" y="24" font-size="17" font-family="${FONT}" font-weight="800" fill="${ink}" text-anchor="middle">${label}</text>`;
+
+  if (c.type === 'gwang') return box('#efc132', '광', '#5f4103');
+  if (c.type === 'animal') return box(c.godori ? '#cf2a22' : '#2f6fb0', c.godori ? '고' : '열', '#fff8ea');
+  if (c.type === 'junk' && c.pi === 2) return box('#241a12', '쌍', '#f4cf5e');
   return '';
 }
 
 function monthTag(c) {
   return (
-    `<rect x="4" y="128" width="38" height="18" rx="5" fill="rgba(24,18,12,0.72)"/>` +
-    `<text x="23" y="141.5" font-size="11.5" font-family="${FONT}" font-weight="700" fill="#f6e7c8" text-anchor="middle">${c.month}월</text>`
+    p('M4 126 H40 V146 H4 Z', 'rgba(22,16,9,0.82)', 1.4) +
+    `<text x="22" y="141" font-size="12.5" font-family="${FONT}" font-weight="700" fill="#f6e7c8" text-anchor="middle">${c.month}월</text>`
   );
 }
 
-/* ------------------------------------------------------------------ api  */
+/** Woodblock keyline just inside the card edge. */
+const KEYLINE = p('M3 3 H97 V147 H3 Z', 'none', 2.4);
+
+/* ------------------------------------------------------------------- api */
 
 /** Full artwork for one card as an SVG string (100x150 viewBox, no ids). */
 export function cardSVG(c) {
-  const p = PAL[c.month];
-  let body = BG[c.month](p);
-  if (c.motif && MOTIF[c.motif]) body += MOTIF[c.motif](p);
+  const q = PAL[c.month];
+  let body = `<rect width="100" height="150" fill="${PAPER}"/>` + BG[c.month](q);
+  if (c.motif && MOTIF[c.motif]) body += MOTIF[c.motif](q);
   if (c.type === 'ribbon') body += ribbonBand(c.ribbon);
-  body += badge(c) + monthTag(c);
+  body += seal(c) + monthTag(c) + KEYLINE;
   return `<svg class="card-art" viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${c.month}월 ${c.name}">${body}</svg>`;
 }
 
@@ -440,15 +570,17 @@ export function cardSVG(c) {
 export function cardBackSVG() {
   let mesh = '';
   for (let i = -6; i < 14; i++) {
-    mesh += `<path d="M${i * 12} 0 L${i * 12 + 150} 150" stroke="#8a1f19" stroke-width="3" opacity="0.5"/>`;
-    mesh += `<path d="M${i * 12} 150 L${i * 12 + 150} 0" stroke="#8a1f19" stroke-width="3" opacity="0.5"/>`;
+    mesh += `<path d="M${i * 11} 0 L${i * 11 + 150} 150" stroke="#7d1811" stroke-width="3.4" opacity="0.45"/>`;
+    mesh += `<path d="M${i * 11} 150 L${i * 11 + 150} 0" stroke="#7d1811" stroke-width="3.4" opacity="0.45"/>`;
   }
   return (
     `<svg class="card-art" viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="뒷면">` +
-    `<rect width="100" height="150" fill="#b8302a"/>${mesh}` +
-    `<rect x="10" y="16" width="80" height="118" rx="8" fill="none" stroke="#f2d9a8" stroke-width="2.4"/>` +
-    `<circle cx="50" cy="75" r="22" fill="#8a1f19" stroke="#f2d9a8" stroke-width="2"/>` +
-    `<text x="50" y="84" font-size="24" font-family="${FONT}" font-weight="800" fill="#f2d9a8" text-anchor="middle">花</text>` +
+    `<rect width="100" height="150" fill="#b02b24"/>${mesh}` +
+    `<rect x="9" y="15" width="82" height="120" rx="7" fill="none" stroke="#f2d9a8" stroke-width="2.6"/>` +
+    `<rect x="13" y="19" width="74" height="112" rx="5" fill="none" stroke="#f2d9a8" stroke-width="1" opacity="0.6"/>` +
+    `<circle cx="50" cy="75" r="23" fill="#7d1811" stroke="#f2d9a8" stroke-width="2.4"/>` +
+    `<text x="50" y="85" font-size="26" font-family="serif" font-weight="700" fill="#f2d9a8" text-anchor="middle">花</text>` +
+    `<path d="M3 3 H97 V147 H3 Z" fill="none" stroke="#5d100b" stroke-width="2.6"/>` +
     `</svg>`
   );
 }
