@@ -10,10 +10,12 @@
 import { card } from './cards.js';
 import { scorePile, bombMonths, shakeMonths } from './engine.js';
 
-// Risk tolerance at a go/stop prompt. Swept head to head over 5000 seeded
-// games: anything above ~1.6 calls 고 too often and gives points back.
-// The levels differ mainly in how much noise is added to the card choice.
-const AGGRESSION = { easy: 1.0, normal: 1.6, hard: 1.6 };
+// Risk tolerance at a go/stop prompt: how much the downside of calling 고 is
+// discounted. Swept over 25k paired seeds (each seed played twice with the
+// arms swapped between seats, so the deal cancels out of the difference).
+// 1.1-1.45 is a flat plateau; 1.6 is worse by 0.13 pts/game and 2.8 by 0.72.
+// The levels differ mainly in how much noise goes into the card choice.
+const AGGRESSION = { easy: 1.0, normal: 1.3, hard: 1.3 };
 
 const MATERIAL = { gwang: 9, animal: 4, ribbon: 3.6, junk: 1.5 };
 
