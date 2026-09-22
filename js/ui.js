@@ -5,8 +5,8 @@
 // the played card and the flip go into their own slots for a beat, the special
 // calls flash as a toast, and then the board re-renders into its new shape.
 
-import { card, pileSort, MONTHS } from './cards.js';
-import { cardSVG, cardBackSVG } from './art.js';
+import { card, pileSort, MONTHS, DECK } from './cards.js';
+import { cardFace, cardBackSVG } from './art.js';
 import {
   createGame,
   playCard,
@@ -71,7 +71,7 @@ function cardEl(id, { faceDown = false, cls = '' } = {}) {
     b.setAttribute('aria-label', '뒷면');
   } else {
     const c = card(id);
-    b.innerHTML = cardSVG(c);
+    b.innerHTML = cardFace(c);
     b.setAttribute('aria-label', `${c.month}월 ${c.name}`);
     b.title = `${c.month}월 ${MONTHS[c.month - 1].name} · ${c.name}`;
   }
@@ -609,7 +609,33 @@ export function startGame() {
   runLoop();
 }
 
-export function init() {
+/**
+ * Warm the browser cache for all 48 faces before the first deal. Without this
+ * the opening hand paints as empty boxes while the artwork trickles in, and a
+ * card drawn later flashes blank the first time it is seen.
+ */
+function preloadCards() {
+  const urls = DECK.map((c) => `assets/cards/${c.id}.svg`);
+  let done = 0;
+  return new Promise((resolve) => {
+    // Never block the game on the network: show the board either way.
+    const timer = setTimeout(resolve, 6000);
+    const tick = () => {
+      if (++done === urls.length) {
+        clearTimeout(timer);
+        resolve();
+      }
+    };
+    for (const url of urls) {
+      const img = new Image();
+      img.onload = tick;
+      img.onerror = tick;
+      img.src = url;
+    }
+  });
+}
+
+export async function init() {
   reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   loadStats();
 
@@ -656,6 +682,8 @@ export function init() {
     }
   });
 
+  setStatus('화투를 준비하는 중…');
+  await preloadCards();
   startGame();
 }
 

@@ -17,7 +17,12 @@ import {
   mulberry32,
 } from '../js/engine.js';
 import { chooseAIPlay, chooseAIMatch, chooseAIGoStop } from '../js/ai.js';
-import { cardSVG, cardBackSVG } from '../js/art.js';
+import { cardFace, cardBackSVG } from '../js/art.js';
+import { readFileSync, readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+
+const ASSETS = join(dirname(fileURLToPath(import.meta.url)), '..', 'assets', 'cards');
 
 /* ------------------------------------------------------------------ deck */
 
@@ -50,15 +55,32 @@ test('deck is the standard 48 hwatu cards', () => {
   );
 });
 
-test('every card renders to svg markup', () => {
+test('every card has artwork on disk, and nothing is left over', () => {
+  const onDisk = readdirSync(ASSETS).filter((f) => f.endsWith('.svg')).sort();
+  assert.deepEqual(onDisk, DECK.map((c) => `${c.id}.svg`).sort(), '파일 목록이 덱과 일치해야 한다');
+
   for (const c of DECK) {
-    const svg = cardSVG(c);
-    assert.match(svg, /^<svg /);
-    assert.match(svg, /<\/svg>$/);
-    assert.ok(!svg.includes('NaN'), `${c.id} produced NaN`);
-    assert.ok(!svg.includes('undefined'), `${c.id} produced undefined`);
+    const svg = readFileSync(join(ASSETS, `${c.id}.svg`), 'utf8');
+    assert.ok(svg.includes('<svg'), `${c.id} is not an SVG`);
+    assert.ok(svg.length > 1000, `${c.id} looks truncated (${svg.length} bytes)`);
   }
   assert.match(cardBackSVG(), /^<svg /);
+});
+
+test('a card face points at its own artwork and carries the play aids', () => {
+  for (const c of DECK) {
+    const html = cardFace(c);
+    assert.ok(html.includes(`assets/cards/${c.id}.svg`), `${c.id} face has the wrong src`);
+    assert.ok(html.includes(`class="card-month">${c.month}<`), `${c.id} is missing its month`);
+    assert.ok(!html.includes('undefined'), `${c.id} produced undefined`);
+  }
+  // 광 cards already carry 光 in the artwork, so they get no extra badge.
+  assert.ok(!cardFace(card('m01-gwang')).includes('card-badge'));
+  assert.ok(cardFace(card('m02-yeol')).includes('is-godori'));
+  assert.ok(cardFace(card('m05-yeol')).includes('is-animal'));
+  assert.ok(cardFace(card('m11-ssang')).includes('is-double'));
+  assert.ok(cardFace(card('m12-ssang')).includes('is-double'));
+  assert.ok(cardFace(card('m01-tti')).includes('ribbon-hong'));
 });
 
 /* --------------------------------------------------------------- scoring */

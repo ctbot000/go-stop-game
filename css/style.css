@@ -225,10 +225,10 @@ select {
   flex: 0 1 var(--card-w);
   width: var(--card-w);
   min-width: 0;
-  aspect-ratio: 100 / 150;
+  aspect-ratio: 103.2 / 168.2;   /* the artwork's own ratio */
   border-radius: 7px;
   overflow: hidden;
-  background: var(--card-face);
+  background: transparent;
   border: none;
   box-shadow: var(--shadow-card);
   padding: 0;
@@ -236,7 +236,50 @@ select {
   transition: transform 0.14s ease, box-shadow 0.14s ease, filter 0.14s ease;
 }
 
-.card .card-art { display: block; width: 100%; height: 100%; }
+.card .card-art,
+.card .card-img { display: block; width: 100%; height: 100%; }
+
+/* Two play aids painted over the artwork: the month, which is what cards are
+   matched on, and a mark for the types the real cards do not distinguish. */
+.card-month {
+  position: absolute;
+  left: 4%;
+  bottom: 3%;
+  min-width: 26%;
+  padding: 1% 4%;
+  border-radius: 4px;
+  background: rgba(18, 12, 6, 0.82);
+  color: #f7e9cc;
+  font-size: calc(var(--card-w) * 0.23);
+  font-weight: 800;
+  line-height: 1.25;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.card-badge {
+  position: absolute;
+  right: 4%;
+  top: 3%;
+  display: grid;
+  place-items: center;
+  width: 30%;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  font-size: calc(var(--card-w) * 0.22);
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 0 0 1px rgba(20, 12, 6, 0.55);
+  pointer-events: none;
+}
+.card-badge.is-godori { background: #d8352c; color: #fff6ea; }
+.card-badge.is-animal { background: #2f6fb0; color: #fff; }
+.card-badge.is-double { background: #171008; color: #f4cf5e; }
+.card-badge.is-ribbon { background: #f2e3bd; color: #6d1109; }
+.card-badge.ribbon-cho { color: #16307a; }
+.card-badge.ribbon-cheong { background: #2f4fb5; color: #fff; }
+.card-badge.ribbon-plain { background: #f2e3bd; color: #6d1109; }
 
 .card.is-playable { cursor: pointer; }
 .card.is-playable:hover,
@@ -317,7 +360,7 @@ select {
 .stock-card {
   flex: 0 0 auto;
   width: var(--card-w);
-  aspect-ratio: 100 / 150;
+  aspect-ratio: 103.2 / 168.2;
   border-radius: 7px;
   overflow: hidden;
   box-shadow:
@@ -356,7 +399,7 @@ select {
 .slot-card {
   flex: 0 0 auto;
   width: var(--card-w);
-  aspect-ratio: 100 / 150;
+  aspect-ratio: 103.2 / 168.2;
   border-radius: 7px;
   border: 1.5px dashed var(--edge);
   background: rgba(0, 0, 0, 0.16);
@@ -413,6 +456,8 @@ select {
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
 }
+.pile-cards .card-month,
+.pile-cards .card-badge { display: none; }
 .pile-cards .card + .card { margin-left: calc(var(--card-w) * -0.28); }
 .pile-cards .card:hover { z-index: 2; transform: translateY(-5px); }
 
