@@ -1,0 +1,12 @@
+{
+  "name": "go-stop-game",
+  "version": "1.0.0",
+  "description": "Korean Go-Stop (고스톱) in the browser — hwatu cards drawn in SVG, no build step, no dependencies.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test test/engine.test.mjs",
+    "start": "python3 -m http.server 8777"
+  },
+  "license": "MIT"
+}

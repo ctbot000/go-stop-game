@@ -1,0 +1,5 @@
+# local agent state
+.claude/
+
+# node
+node_modules/

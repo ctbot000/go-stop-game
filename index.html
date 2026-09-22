@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>고스톱 · Go-Stop</title>
+    <meta name="description" content="브라우저에서 바로 즐기는 2인 맞고. 화투 48장, 고/스톱, 뻑·쪽·따닥·싹쓸이·폭탄·흔들기까지." />
+    <meta name="theme-color" content="#0f2a1d" />
+    <meta property="og:title" content="고스톱 · Go-Stop" />
+    <meta property="og:description" content="브라우저에서 바로 즐기는 2인 맞고. 설치 없이 클릭 한 번으로." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23b8302a'/%3E%3Ccircle cx='50' cy='50' r='30' fill='%238a1f19' stroke='%23f2d9a8' stroke-width='4'/%3E%3Ctext x='50' y='64' font-size='38' text-anchor='middle' fill='%23f2d9a8' font-family='serif'%3E花%3C/text%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <h1 class="brand"><span class="brand-mark">花</span> 고스톱</h1>
+        <div class="topbar-actions">
+          <label class="field">
+            <span>난이도</span>
+            <select id="difficulty">
+              <option value="easy">쉬움</option>
+              <option value="normal" selected>보통</option>
+              <option value="hard">어려움</option>
+            </select>
+          </label>
+          <button type="button" id="btn-new" class="btn btn-primary">새 판</button>
+          <button type="button" id="btn-rules" class="btn">규칙</button>
+          <button type="button" id="btn-log" class="btn" aria-expanded="false">기록</button>
+        </div>
+      </header>
+
+      <main class="board">
+        <!-- opponent -->
+        <section class="seat seat-ai" aria-label="상대">
+          <div class="seat-head">
+            <div class="seat-id">
+              <span class="avatar" aria-hidden="true">AI</span>
+              <span class="seat-name" id="ai-name">컴퓨터</span>
+              <span class="go-chip" id="ai-go" hidden></span>
+            </div>
+            <div class="piles" id="ai-piles"></div>
+            <div class="seat-score"><strong id="ai-score">0</strong><span>점</span></div>
+          </div>
+          <div class="seat-body">
+            <div class="hand hand-back" id="ai-hand" aria-label="상대 손패"></div>
+          </div>
+        </section>
+
+        <!-- floor -->
+        <section class="floor-area" aria-label="바닥">
+          <div class="stock">
+            <div class="stock-card" id="deck" aria-hidden="true"></div>
+            <div class="stock-count"><span id="deck-count">20</span>장</div>
+          </div>
+          <div class="floor" id="floor"></div>
+          <div class="action-slots">
+            <div class="slot" id="slot-play"><span class="slot-label">낸 패</span><div class="slot-card"></div></div>
+            <div class="slot" id="slot-flip"><span class="slot-label">뒤집기</span><div class="slot-card"></div></div>
+          </div>
+        </section>
+
+        <!-- player -->
+        <section class="seat seat-me" aria-label="나">
+          <div class="seat-body">
+            <div class="hand" id="my-hand" aria-label="내 손패"></div>
+          </div>
+          <div class="seat-head">
+            <div class="seat-id">
+              <span class="avatar avatar-me" aria-hidden="true">나</span>
+              <span class="seat-name">나</span>
+              <span class="go-chip" id="my-go" hidden></span>
+            </div>
+            <div class="piles" id="my-piles"></div>
+            <div class="seat-score"><strong id="my-score">0</strong><span>점</span></div>
+          </div>
+        </section>
+      </main>
+
+      <div class="status" id="status" role="status" aria-live="polite">패를 골라 내세요.</div>
+
+      <aside class="logpanel" id="logpanel" hidden>
+        <div class="logpanel-head">
+          <h2>진행 기록</h2>
+          <button type="button" class="btn btn-ghost" id="btn-log-close" aria-label="기록 닫기">✕</button>
+        </div>
+        <ol id="loglist"></ol>
+      </aside>
+    </div>
+
+    <div class="toast" id="toast" aria-live="assertive"></div>
+
+    <div class="backdrop" id="backdrop" hidden>
+      <div class="dialog" id="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+        <h2 id="dialog-title"></h2>
+        <div id="dialog-body"></div>
+        <div class="dialog-actions" id="dialog-actions"></div>
+      </div>
+    </div>
+
+    <noscript>
+      <p style="padding: 2rem; color: #f3e6c6">이 게임을 하려면 자바스크립트를 켜야 합니다.</p>
+    </noscript>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
